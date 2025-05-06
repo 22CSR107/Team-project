@@ -1,46 +1,72 @@
 const StudentModel = require('../models/student.model.js');
 
-class StudentService {
-    async registerStudent(studentid, firstname, lastname, email, password, dob, address, mobilenumber, departmentid, enroll, graduationyear) {
-        const obj = {
-            studentid: studentid,
-            firstname: firstname,
-            lastname: lastname,
-            email: email,
-            password: password,
-            dob: dob,
-            address: address,
-            mobilenumber: mobilenumber,
-            departmentid: departmentid,
-            enroll: enroll,
-            graduationyear: graduationyear
-        };
+async function registerStudent(studentid, firstname, lastname, email, password, dob, address, mobilenumber, departmentid, enroll, graduationyear) {
+    const obj = {
+        studentid,
+        firstname,
+        lastname,
+        email,
+        password,
+        dob,
+        address,
+        mobilenumber,
+        departmentid,
+        enroll,
+        graduationyear
+    };
 
-        const newStudent = new StudentModel(obj);
-        await newStudent.save(); // Use save() to persist the new student to the database
-    }
-
-    async updateStudent(obj) {
-        const id = obj.studentid;
-        const existingStudent = await StudentModel.findById(id);
-        if (!existingStudent) {
-            throw new Error('Student not found');
-        }
-        existingStudent.firstname = obj.firstname;
-        existingStudent.lastname = obj.lastname;
-        existingStudent.address = obj.address;
-        await existingStudent.save();
-    }
-
-    async getAllStudent() {
-        const students = await StudentModel.find();
-        return students;
-    }
-
-    async deleteStudent(id) {
-        await StudentModel.findByIdAndDelete(id);
-        return { message: 'Student deleted successfully' };
-    }
+    const newStudent = new StudentModel(obj);
+    await newStudent.save();
 }
 
-module.exports = StudentService;
+async function updateStudent(obj) {
+    const id = obj.studentid;
+    const existingStudent = await StudentModel.findById(id);
+    if (!existingStudent) {
+        throw new Error('Student not found');
+    }
+    existingStudent.firstname = obj.firstname;
+    existingStudent.lastname = obj.lastname;
+    existingStudent.address = obj.address;
+    await existingStudent.save();
+}
+
+async function getAllStudent() {
+    return await StudentModel.find();
+}
+
+async function deleteStudent(id) {
+    await StudentModel.findByIdAndDelete(id);
+    return { message: 'Student deleted successfully' };
+}
+
+async function loginStudent(email, password) {
+    const student = await StudentModel.findOne({ email });
+
+    if (!student) {
+        throw new Error("Student with this email does not exist");
+    }
+
+    if (student.password !== password) {
+        throw new Error("Invalid password");
+    }
+
+    return {
+        message: "Login successful",
+        student: {
+            studentid: student.studentid,
+            firstname: student.firstname,
+            lastname: student.lastname,
+            email: student.email
+        }
+    };
+}
+
+
+module.exports = {
+    registerStudent,
+    updateStudent,
+    getAllStudent,
+    deleteStudent,
+    loginStudent
+};
